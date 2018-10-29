@@ -8,20 +8,20 @@ import AVFoundation
 import Foundation
 
 class AudioVideoPermissionStrategy : NSObject, PermissionStrategy {
-    
+
     func checkPermissionStatus(permission: PermissionGroup) -> PermissionStatus {
         if permission == PermissionGroup.camera {
-            return AudioVideoPermissionStrategy.getPermissionStatus(mediaType: AVMediaType.video)
+            return AudioVideoPermissionStrategy.getPermissionStatus(mediaType: AVMediaTypeVideo as AVMediaType)
         } else if permission == PermissionGroup.microphone {
-            return AudioVideoPermissionStrategy.getPermissionStatus(mediaType: AVMediaType.audio)
+            return AudioVideoPermissionStrategy.getPermissionStatus(mediaType: AVMediaTypeAudio as AVMediaType)
         }
-        
+
         return PermissionStatus.unknown
     }
-    
+
     private static func getPermissionStatus(mediaType: AVMediaType) -> PermissionStatus {
         let status: AVAuthorizationStatus = AVCaptureDevice.authorizationStatus(for: mediaType)
-        
+
         switch status {
         case AVAuthorizationStatus.authorized:
             return PermissionStatus.granted
@@ -33,27 +33,27 @@ class AudioVideoPermissionStrategy : NSObject, PermissionStrategy {
             return PermissionStatus.unknown
         }
     }
-    
+
     func requestPermission(permission: PermissionGroup, completionHandler: @escaping PermissionStatusHandler) {
         let permissionStatus = checkPermissionStatus(permission: permission)
-        
+
         if permissionStatus != PermissionStatus.unknown {
             completionHandler(permissionStatus)
             return
         }
-        
+
         var mediaType: AVMediaType
-        
+
         if permission == PermissionGroup.camera {
-            mediaType = AVMediaType.video
+            mediaType = AVMediaTypeVideo as AVMediaType
         } else if permission == PermissionGroup.microphone {
-            mediaType = AVMediaType.audio
+            mediaType = AVMediaTypeAudio as AVMediaType
         } else {
             completionHandler(PermissionStatus.unknown)
             return
         }
-        
-        AVCaptureDevice.requestAccess(for: mediaType, completionHandler: {
+
+        AVCaptureDevice.requestAccess(forMediaType: mediaType as String, completionHandler: {
             (granted: Bool) in
                 if granted {
                     completionHandler(PermissionStatus.granted)
